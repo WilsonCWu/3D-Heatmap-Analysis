@@ -36,29 +36,61 @@ def draw_detections(img, rects, thickness = 1):
         pad_w, pad_h = int(0.15*w), int(0.05*h)
         cv2.rectangle(img, (x+pad_w, y+pad_h), (x+w-pad_w, y+h-pad_h), (0, 255, 0), thickness)
 
+def isMovement(img):
+    return np.average(np.average(img, axis=0), axis=0) >= 1
+
+
 cam = cv2.VideoCapture(1)
 
-winName = "Movement detection"
 #cv2.namedWindow(winName, cv2.CV_WINDOW_AUTOSIZE)
 
 last = cv2.cvtColor(cam.read()[1], cv2.COLOR_RGB2GRAY)
+
+
 this = cv2.cvtColor(cam.read()[1], cv2.COLOR_RGB2GRAY)
+
+
 img = cam.read()[1]
+
+
 first = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+
+
 prevgray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 while True:
     # Checking for movement
 
-    avg = np.average(np.average(diffImg(last, this, first), axis=0), axis=0)
-    if avg >= 1:
-        print("I see you!")
-    cv2.imshow( winName, diffImg(last, this, first) )
+    isMovement(diffImg(last, this, first))
+    
+
+    cv2.imshow( "Movement detection" , diffImg(last, this, first) )
 
     last = this
     this = first
     img = cam.read()[1]
     first = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+
+    # Assign the aisles
+
+
+
+    col1 = img[0: , 0:150]
+    col2 = img[0: , 225:375]
+    col3 = img[0: , 450:600]
+
+    cv2.imshow("aisle 1", col1)
+    cv2.imshow("aisle 2", col2)
+    cv2.imshow("aisle 3", col3)
+
+    #Checking for movement direction
+
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    flow = cv2.calcOpticalFlowFarneback(prevgray, gray, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+    prevgray = gray
+
+    cv2.imshow('Direction', draw_flow(gray, flow))
+
 
     #Looking for hoomans
 
@@ -85,14 +117,6 @@ while True:
     draw_detections(img, found_filtered, 3)
     #print('%d (%d) found' % (len(found_filtered), len(found)))
     cv2.imshow('img', img)
-
-    # Checking for movement direction
-
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    flow = cv2.calcOpticalFlowFarneback(prevgray, gray, None, 0.5, 3, 15, 3, 5, 1.2, 0)
-    prevgray = gray
-
-    cv2.imshow('flow', draw_flow(gray, flow))
 
     ch = cv2.waitKey(5)
     if ch == 27:
