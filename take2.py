@@ -20,7 +20,7 @@ def inside(r, q):
     return rx > qx and ry > qy and rx + rw < qx + qw and ry + rh < qy + qh
 
 def draw_flow(img, flow, step=16):
-    threshold = 3.75
+    threshold = 1.5
     h, w = img.shape[:2]
     y, x = np.mgrid[step/2:h:step, step/2:w:step].reshape(2,-1).astype(int)
     fx, fy = flow[y,x].T
